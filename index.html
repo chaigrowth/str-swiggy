@@ -46,7 +46,7 @@ html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--t
 .dz-sub{font-size:10px;color:var(--muted);margin-top:2px}
 
 /* Buttons */
-.btn-primary{width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:.15s;margin-top:10px}
+.btn-primary{width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn-primary:disabled{opacity:.4;cursor:not-allowed}
 .btn-primary:not(:disabled):hover{opacity:.88}
 .btn-sm{padding:6px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:11px;cursor:pointer;transition:.15s;white-space:nowrap}
@@ -267,7 +267,7 @@ tbody td{padding:7px 10px;vertical-align:middle}
     </div>
     <div class="tbl-container">
       <div class="empty" id="termsEmpty"><div class="ei">🔍</div><p>Analyze data first</p></div>
-      <div id="termsTableWrap" style="display:none;flex:1;overflow:hidden;flex-direction:column;display:none">
+      <div id="termsTableWrap" style="display:none;flex:1;overflow:hidden;flex-direction:column">
         <div class="tbl-wrap" id="termsTblScroll">
           <table>
             <thead>
@@ -676,7 +676,7 @@ function renderOverview() {
           <div class="stat-row"><span class="stat-l">⚠️ Irrelevant</span><span class="stat-r" style="color:var(--irr)">${fmt(s.IRR)} queries</span></div>
           <div class="stat-row"><span class="stat-l">🔶 Bleeding</span><span class="stat-r" style="color:var(--bleed)">${fmt(s.BLEED)} queries</span></div>
         </div>
-        <div><p style="font-size:11px;color:var(--muted);line-height:1.7">Switch high-spend broad match keywords to phrase match. Add the full negation list (Negation List tab → Export) to all affected campaigns. Review bleeding terms for bid reduction or exclusion.</p></div>
+        <div><p style="font-size:11px;color:var(--muted);line-height:1.7">Switch high-spend broad match keywords to phrase match. Add the full negation list (Negation List tab → Export) to all affected campaigns for immediate impact.</p></div>
         <div>
           <div class="stat-row"><span class="stat-l">Campaigns analyzed</span><span class="stat-r">${fmt(S.campaigns.length)}</span></div>
           <div class="stat-row"><span class="stat-l">Categories detected</span><span class="stat-r">${fmt(S.categories.length)}</span></div>
