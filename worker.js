@@ -10,7 +10,7 @@
 importScripts('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
 
 const NEG_PAT = [
-  /\bac\b|air conditioner|split ac|window ac|refrigerat|fridge|freezer|washing machine|dishwasher|microwave oven|\btelevision\b|\btv\b|led tv|smart tv|\blaptop\b|\bcomputer\b|desktop pc|mobile phone|smartphone|\bcharger\b|power bank|earphone|headphone|bluetooth speaker/i,
+  /\bac\b|air conditioner|split ac|window ac|refrigerat|fridge|freezer|washing machine|dishwasher|microwave oven|\btelevision\b|\btv\b|led tv|smart tv|\blaptop\b|\bcomputer\b|desktop pc|mobile phone|\bphone\b|smartphone|tablet|iphone|samsung|oneplus/i,
   /\bjob\b|career|vacancy|hiring|salary|recruitment|internship|fresher jobs/i,
   /free download|apk\b|torrent|\bcrack\b|\bhack\b|cheat code|mod apk/i,
   /stock price|share price|\bsensex\b|\bnifty\b|mutual fund|\bipo\b|\btrading\b|\bdemat\b/i,
