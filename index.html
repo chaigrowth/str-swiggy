@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STR Dashboard · Swiggy Ads</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f13;--bg2:#141720;--bg3:#1c2030;--bg4:#252a3a;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --text:#e8eaf0;--muted:#7c819a;
+  --accent:#ff6330;--accent2:#ff8a5c;
+  --ok:#2ecc71;--ok-bg:rgba(46,204,113,.12);
+  --bleed:#f39c12;--bleed-bg:rgba(243,156,18,.12);
+  --irr:#e67e22;--irr-bg:rgba(230,126,34,.12);
+  --neg:#e74c3c;--neg-bg:rgba(231,76,60,.12);
+  --font:'Sora',sans-serif;--mono:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* Shell */
+.shell{display:grid;grid-template-rows:52px 1fr;height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.logo{font-family:var(--mono);font-size:13px;letter-spacing:.02em}
+.logo em{color:var(--accent);font-style:normal}
+.body{display:grid;grid-template-columns:240px 1fr;overflow:hidden}
+
+/* Sidebar */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sb-section{padding:16px;border-bottom:1px solid var(--border)}
+.sb-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+
+/* Dropzone */
+.dz{border:1.5px dashed var(--border2);border-radius:8px;padding:14px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:8px;position:relative}
+.dz:hover{border-color:var(--accent);background:rgba(255,99,48,.04)}
+.dz.ok{border-style:solid;border-color:var(--ok);background:rgba(46,204,113,.05)}
+.dz.err{border-color:var(--neg)}
+.dz input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.dz-icon{font-size:20px;margin-bottom:4px}
+.dz-name{font-size:12px;font-weight:500}
+.dz-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* Buttons */
+.btn-primary{width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:.15s;margin-top:10px}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary:not(:disabled):hover{opacity:.88}
+.btn-sm{padding:6px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--font);font-size:11px;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm:disabled{opacity:.4;cursor:not-allowed}
+
+/* Progress */
+.prog-wrap{padding:10px 16px;border-bottom:1px solid var(--border);display:none}
+.prog-bar{height:3px;background:var(--bg4);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .15s}
+.prog-msg{font-size:10px;color:var(--muted);margin-top:5px;font-family:var(--mono)}
+
+/* Filters */
+.f-group{margin-bottom:10px}
+.f-group label{font-size:10px;color:var(--muted);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.f-group select,.f-group input[type=text],.f-group input[type=number]{width:100%;padding:6px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--font);font-size:11px}
+.f-group select:focus,.f-group input:focus{outline:none;border-color:var(--accent)}
+.flag-checks{display:flex;flex-direction:column;gap:5px}
+.fc-row{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:11px}
+.fc-row input{accent-color:var(--accent);width:13px;height:13px;cursor:pointer}
+.fc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Main */
+.main{display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.tab{padding:11px 18px;font-size:12px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;letter-spacing:.03em;transition:.15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);background:var(--border);gap:1px;flex-shrink:0}
+.mc{background:var(--bg2);padding:12px 14px}
+.mc-lbl{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.mc-val{font-size:18px;font-weight:600;font-family:var(--mono)}
+.mc-sub{font-size:9px;color:var(--muted);margin-top:2px}
+
+/* Sections */
+.sec{display:none;flex:1;overflow:hidden;flex-direction:column}
+.sec.active{display:flex}
+
+/* Empty / loading states */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:10px}
+.empty .ei{font-size:36px}
+.empty p{font-size:13px}
+
+/* Table toolbar */
+.tbl-bar{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;gap:10px}
+.tbl-bar-l{display:flex;align-items:center;gap:8px;flex:1}
+.tbl-search{flex:1;max-width:220px;padding:5px 9px;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-family:var(--font);font-size:11px}
+.tbl-search:focus{outline:none;border-color:var(--accent)}
+.row-info{font-size:10px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+
+/* Table */
+.tbl-wrap{flex:1;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead{position:sticky;top:0;z-index:2}
+thead th{background:var(--bg3);padding:8px 10px;text-align:left;font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);white-space:nowrap;cursor:pointer;border-bottom:1px solid var(--border2)}
+thead th:hover{color:var(--text)}
+thead th.sorted{color:var(--accent)}
+tbody tr{border-bottom:1px solid var(--border)}
+tbody tr:hover{background:var(--bg3)}
+tbody td{padding:7px 10px;vertical-align:middle}
+.td-mono{font-family:var(--mono)}
+.td-muted{color:var(--muted)}
+.td-clip{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-clip-sm{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Flag pill */
+.fp{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+.fp-OK    {background:var(--ok-bg);color:var(--ok)}
+.fp-BLEED {background:var(--bleed-bg);color:var(--bleed)}
+.fp-IRR   {background:var(--irr-bg);color:var(--irr)}
+.fp-NEGATE{background:var(--neg-bg);color:var(--neg)}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0}
+.pg-info{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.pg-btns{display:flex;gap:6px;align-items:center}
+.pg-btn{padding:4px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-size:11px;cursor:pointer}
+.pg-btn:hover{border-color:var(--accent)}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
+.pg-num{font-size:11px;color:var(--muted);font-family:var(--mono);padding:0 4px}
+
+/* Loading overlay for table */
+.tbl-loading{position:absolute;inset:0;background:rgba(13,15,19,.7);display:flex;align-items:center;justify-content:center;z-index:10;border-radius:4px}
+.tbl-container{position:relative;flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* Overview */
+.ov-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:14px;overflow-y:auto}
+.ov-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px}
+.ov-card.red{border-left:3px solid var(--neg)}
+.ov-card.amber{border-left:3px solid var(--bleed)}
+.ov-card.green{border-left:3px solid var(--ok)}
+.ov-card.blue{border-left:3px solid #3498db}
+.ov-card h4{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.ov-card .big{font-size:26px;font-weight:700;font-family:var(--mono);margin-bottom:4px}
+.ov-card p{font-size:11px;color:var(--muted);line-height:1.65}
+.stat-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
+.stat-row:last-child{border:none}
+.stat-l{color:var(--muted)}
+.stat-r{font-family:var(--mono);font-weight:500}
+.chart-wrap{position:relative;height:170px;margin-bottom:10px}
+
+/* Spinner */
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="logo"><em>STR</em> Analysis &nbsp;·&nbsp; Swiggy Ads</div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span id="topMsg" style="font-size:10px;color:var(--muted);font-family:var(--mono)"></span>
+    <button class="btn-sm" id="btnExportAll" disabled>⬇ Export flagged</button>
+  </div>
+</div>
+
+<div class="body">
+<!-- ── Sidebar ── -->
+<div class="sidebar">
+
+  <div class="sb-section">
+    <div class="sb-label">Data sources</div>
+    <div class="dz" id="strDrop">
+      <input type="file" id="strFile" accept=".xlsx,.xls">
+      <div class="dz-icon" id="strIcon">📊</div>
+      <div class="dz-name">STR Report</div>
+      <div class="dz-sub" id="strSub">Excel · daily level</div>
+    </div>
+    <div class="dz" id="mapDrop">
+      <input type="file" id="mapFile" accept=".xlsx,.xls">
+      <div class="dz-icon" id="mapIcon">🗺</div>
+      <div class="dz-name">Campaign Mapper</div>
+      <div class="dz-sub" id="mapSub">Excel · campaign metadata</div>
+    </div>
+    <button class="btn-primary" id="btnAnalyze" disabled>
+      <span id="btnTxt">⚡ Analyze</span>
+    </button>
+  </div>
+
+  <div class="prog-wrap" id="progWrap">
+    <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-msg" id="progMsg">Starting...</div>
+  </div>
+
+  <div class="sb-section" style="flex:1">
+    <div class="sb-label">Filters</div>
+    <div class="f-group">
+      <label>Flag type</label>
+      <div class="flag-checks" id="flagChecks">
+        <label class="fc-row"><input type="checkbox" class="fc" value="NEGATE" checked><div class="fc-dot" style="background:var(--neg)"></div>Negate strict</label>
+        <label class="fc-row"><input type="checkbox" class="fc" value="BLEED" checked><div class="fc-dot" style="background:var(--bleed)"></div>Bleeding</label>
+        <label class="fc-row"><input type="checkbox" class="fc" value="IRR" checked><div class="fc-dot" style="background:var(--irr)"></div>Irrelevant</label>
+        <label class="fc-row"><input type="checkbox" class="fc" value="OK" checked><div class="fc-dot" style="background:var(--ok)"></div>OK</label>
+      </div>
+    </div>
+    <div class="f-group">
+      <label>Campaign</label>
+      <select id="fCampaign"><option value="">All campaigns</option></select>
+    </div>
+    <div class="f-group">
+      <label>Category</label>
+      <select id="fCategory"><option value="">All categories</option></select>
+    </div>
+    <div class="f-group">
+      <label>Match type</label>
+      <select id="fMatch">
+        <option value="">All</option>
+        <option value="BROAD">Broad</option>
+        <option value="PHRASE">Phrase</option>
+        <option value="EXACT">Exact</option>
+      </select>
+    </div>
+    <div class="f-group">
+      <label>Min spend (₹)</label>
+      <input type="number" id="fSpend" placeholder="e.g. 100" min="0">
+    </div>
+    <button class="btn-sm" id="btnApply" disabled style="width:100%;margin-top:4px;justify-content:center;display:flex">Apply filters</button>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<div class="main">
+  <div class="tabs">
+    <div class="tab active" data-tab="overview">Overview</div>
+    <div class="tab" data-tab="terms">Search Terms</div>
+    <div class="tab" data-tab="negatives">Negation List</div>
+    <div class="tab" data-tab="campaigns">Campaigns</div>
+  </div>
+
+  <!-- Metrics bar -->
+  <div class="metrics">
+    <div class="mc"><div class="mc-lbl">Total rows</div><div class="mc-val" id="mTotal">—</div></div>
+    <div class="mc"><div class="mc-lbl">Negate</div><div class="mc-val" id="mNeg" style="color:var(--neg)">—</div><div class="mc-sub">strict</div></div>
+    <div class="mc"><div class="mc-lbl">Irrelevant</div><div class="mc-val" id="mIrr" style="color:var(--irr)">—</div></div>
+    <div class="mc"><div class="mc-lbl">Bleeding</div><div class="mc-val" id="mBleed" style="color:var(--bleed)">—</div></div>
+    <div class="mc"><div class="mc-lbl">Total spend</div><div class="mc-val" id="mSpend" style="color:var(--accent)">—</div></div>
+    <div class="mc"><div class="mc-lbl">Wasted spend</div><div class="mc-val" id="mWasted" style="color:var(--neg)">—</div><div class="mc-sub" id="mWastedPct"></div></div>
+  </div>
+
+  <!-- Overview -->
+  <div class="sec active" id="sec-overview">
+    <div class="empty" id="ovEmpty"><div class="ei">📂</div><p>Upload both files and click Analyze</p></div>
+    <div class="ov-grid" id="ovGrid" style="display:none"></div>
+  </div>
+
+  <!-- Search Terms -->
+  <div class="sec" id="sec-terms">
+    <div class="tbl-bar">
+      <div class="tbl-bar-l">
+        <input type="text" class="tbl-search" id="tblSearch" placeholder="Search query...">
+        <span class="row-info" id="rowInfo">—</span>
+      </div>
+      <button class="btn-sm" id="btnExportView" disabled>⬇ Export view</button>
+    </div>
+    <div class="tbl-container">
+      <div class="empty" id="termsEmpty"><div class="ei">🔍</div><p>Analyze data first</p></div>
+      <div id="termsTableWrap" style="display:none;flex:1;overflow:hidden;flex-direction:column;display:none">
+        <div class="tbl-wrap" id="termsTblScroll">
+          <table>
+            <thead>
+              <tr>
+                <th data-col="sq">Search query</th>
+                <th data-col="kw">Keyword</th>
+                <th data-col="matchType">Match</th>
+                <th data-col="campaign">Campaign</th>
+                <th data-col="category">Category</th>
+                <th data-col="franchise">Franchise</th>
+                <th data-col="burnt" class="sorted">Spend ₹ ↓</th>
+                <th data-col="impr">Impr.</th>
+                <th data-col="clicks">Clicks</th>
+                <th data-col="roi">ROI</th>
+                <th data-col="flag">Flag</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody id="termsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tbl-loading" id="termsLoader" style="display:none"><div class="spin"></div></div>
+    </div>
+    <div class="pagination" id="termsPag" style="display:none">
+      <span class="pg-info" id="termsPagInfo"></span>
+      <div class="pg-btns">
+        <button class="pg-btn" id="termsPrev">← Prev</button>
+        <span class="pg-num" id="termsPagNum"></span>
+        <button class="pg-btn" id="termsNext">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Negation List -->
+  <div class="sec" id="sec-negatives">
+    <div class="tbl-bar">
+      <span class="row-info" id="negInfo">—</span>
+      <button class="btn-sm" id="btnExportNeg" disabled>⬇ Export negation list</button>
+    </div>
+    <div class="tbl-container">
+      <div class="empty" id="negEmpty"><div class="ei">🚨</div><p>No data yet</p></div>
+      <div class="tbl-wrap" id="negTableWrap" style="display:none">
+        <table>
+          <thead><tr>
+            <th>Search query</th><th>Keyword</th><th>Match</th>
+            <th>Campaign</th><th>Category</th>
+            <th>Spend ₹</th><th>Impressions</th><th>Reason</th>
+          </tr></thead>
+          <tbody id="negTbody"></tbody>
+        </table>
+      </div>
+      <div class="tbl-loading" id="negLoader" style="display:none"><div class="spin"></div></div>
+    </div>
+    <div class="pagination" id="negPag" style="display:none">
+      <span class="pg-info" id="negPagInfo"></span>
+      <div class="pg-btns">
+        <button class="pg-btn" id="negPrev">← Prev</button>
+        <span class="pg-num" id="negPagNum"></span>
+        <button class="pg-btn" id="negNext">Next →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Campaigns -->
+  <div class="sec" id="sec-campaigns">
+    <div class="tbl-bar">
+      <span class="row-info" id="campInfo">—</span>
+    </div>
+    <div class="tbl-wrap">
+      <div class="empty" id="campEmpty"><div class="ei">📋</div><p>No data yet</p></div>
+      <table id="campTableWrap" style="display:none">
+        <thead><tr>
+          <th>#</th><th>Campaign</th><th>Category</th>
+          <th>Spend ₹</th><th>Impressions</th><th>Clicks</th>
+          <th style="color:var(--ok)">OK</th>
+          <th style="color:var(--bleed)">Bleed</th>
+          <th style="color:var(--irr)">Irr.</th>
+          <th style="color:var(--neg)">Negate</th>
+          <th>Waste%</th>
+        </tr></thead>
+        <tbody id="campTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /body -->
+</div><!-- /shell -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/* ═══════════════════════════ STATE ═══════════════════════════ */
+const S = {
+  strBuf: null, strLoaded: false,
+  mapData: [], mapLoaded: false,
+  analyzing: false, ready: false,
+  stats: null, campaigns: [], categories: [], campNames: [],
+  // query state
+  filters: { flags: new Set(['OK','BLEED','IRR','NEGATE']), campaign:'', category:'', match:'', query:'', minSpend:0 },
+  sortCol: 'burnt', sortDir: -1,
+  // pagination
+  terms:  { page:0, total:0, pages:0 },
+  neg:    { page:0, total:0, pages:0 },
+  PAGE: 100,
+};
+
+/* ═══════════════════════════ IndexedDB query layer ═══════════ */
+let idb = null;
+
+function openIDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('STR_DB', 2);
+    req.onupgradeneeded = ev => {
+      const d = ev.target.result;
+      ['rows','meta'].forEach(s => { if(d.objectStoreNames.contains(s)) d.deleteObjectStore(s); });
+      const st = d.createObjectStore('rows', { keyPath:'id' });
+      st.createIndex('flag','flag',{unique:false});
+      st.createIndex('campaign','campaign',{unique:false});
+      st.createIndex('category','category',{unique:false});
+      d.createObjectStore('meta',{keyPath:'key'});
+    };
+    req.onsuccess = ev => { idb = ev.target.result; res(); };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+function getMeta(key) {
+  return new Promise((res, rej) => {
+    const tx = idb.transaction('meta','readonly');
+    const req = tx.objectStore('meta').get(key);
+    req.onsuccess = () => res(req.result ? req.result.value : null);
+    req.onerror = () => rej(req.error);
+  });
+}
+
+/* Query rows from IndexedDB with filters + sort + pagination
+   Strategy: open cursor, filter client-side, collect page window
+   For 10L rows a full cursor scan takes ~1-2s — acceptable for lazy load */
+function queryRows(filters, sortCol, sortDir, page, pageSize) {
+  return new Promise((res, rej) => {
+    const tx = idb.transaction('rows','readonly');
+    const store = tx.objectStore('rows');
+    const results = [];
+    const sq = (filters.query||'').toLowerCase().trim();
+    const flags = filters.flags;
+    const camp  = filters.campaign;
+    const cat   = filters.category;
+    const match = filters.match;
+    const minSp = filters.minSpend || 0;
+
+    const req = store.openCursor();
+    req.onsuccess = ev => {
+      const cursor = ev.target.result;
+      if (!cursor) {
+        // Sort results
+        results.sort((a,b) => {
+          const av = a[sortCol] ?? '', bv = b[sortCol] ?? '';
+          if (typeof av === 'number') return (av - bv) * sortDir;
+          return String(av).localeCompare(String(bv)) * sortDir;
+        });
+        const total = results.length;
+        const pages = Math.ceil(total / pageSize);
+        const start = page * pageSize;
+        res({ rows: results.slice(start, start + pageSize), total, pages });
+        return;
+      }
+      const r = cursor.value;
+      let ok = true;
+      if (!flags.has(r.flag)) ok = false;
+      else if (camp  && r.campaign !== camp)           ok = false;
+      else if (cat   && r.category !== cat)            ok = false;
+      else if (match && !r.matchType.includes(match))  ok = false;
+      else if (minSp && r.burnt < minSp)               ok = false;
+      else if (sq    && !r.sq.toLowerCase().includes(sq)) ok = false;
+      if (ok) results.push(r);
+      cursor.continue();
+    };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+/* Query negation list */
+function queryNegs(page, pageSize) {
+  return new Promise((res, rej) => {
+    const tx = idb.transaction('rows','readonly');
+    const store = tx.objectStore('rows');
+    const idx = store.index('flag');
+    const results = [];
+    const req = idx.openCursor(IDBKeyRange.only('NEGATE'));
+    req.onsuccess = ev => {
+      const cursor = ev.target.result;
+      if (!cursor) {
+        const total = results.length;
+        const pages = Math.ceil(total / pageSize);
+        const start = page * pageSize;
+        res({ rows: results.slice(start, start + pageSize), total, pages });
+        return;
+      }
+      results.push(cursor.value);
+      cursor.continue();
+    };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+/* Export all flagged rows */
+function exportAllFlagged() {
+  return new Promise((res, rej) => {
+    const tx = idb.transaction('rows','readonly');
+    const store = tx.objectStore('rows');
+    const results = [];
+    const req = store.openCursor();
+    req.onsuccess = ev => {
+      const cursor = ev.target.result;
+      if (!cursor) { res(results); return; }
+      if (cursor.value.flag !== 'OK') results.push(cursor.value);
+      cursor.continue();
+    };
+    req.onerror = () => rej(req.error);
+  });
+}
+
+/* ═══════════════════════════ WORKER ═════════════════════════ */
+let worker = null;
+
+function startWorker() {
+  if (worker) { worker.terminate(); worker = null; }
+  worker = new Worker('worker.js');
+  worker.onmessage = onWorkerMsg;
+  worker.onerror = err => {
+    setTopMsg('Worker error — check console', true);
+    resetBtn();
+    S.analyzing = false;
+  };
+}
+
+async function onWorkerMsg(e) {
+  const { type } = e.data;
+  if (type === 'STATUS')   { setProgMsg(e.data.msg); }
+  if (type === 'PROGRESS') { setProgFill(e.data.pct); setProgMsg(`Analyzed ${fmt(e.data.processed)} / ${fmt(e.data.total)} rows (${e.data.pct}%)`); }
+  if (type === 'ERROR')    { setTopMsg(e.data.msg, true); resetBtn(); S.analyzing = false; }
+  if (type === 'DONE') {
+    S.stats = e.data.stats;
+    S.campaigns = e.data.campaigns;
+    S.categories = e.data.categories;
+    S.campNames  = e.data.campNames;
+    S.ready = true;
+
+    setProgFill(100);
+    setProgMsg(`Done — ${fmt(e.data.total)} rows indexed`);
+    setTimeout(() => { document.getElementById('progWrap').style.display = 'none'; }, 2000);
+
+    // Open IDB on main thread for queries
+    await openIDB();
+
+    renderMetrics();
+    buildFilterOptions();
+    renderOverview();
+    renderCampaigns();
+
+    // Load first page of terms
+    await loadTermsPage(0);
+    await loadNegPage(0);
+
+    document.getElementById('btnExportAll').disabled = false;
+    document.getElementById('btnExportView').disabled = false;
+    document.getElementById('btnExportNeg').disabled = false;
+    document.getElementById('btnApply').disabled = false;
+    setTopMsg(`✓ ${fmt(e.data.total)} rows · ${fmt(e.data.stats.NEGATE)} to negate`);
+    resetBtn();
+    S.analyzing = false;
+  }
+}
+
+/* ═══════════════════════════ FILE UPLOAD ════════════════════ */
+function setupDrop(dropId, inputId, onFile) {
+  const drop = document.getElementById(dropId);
+  const inp  = document.getElementById(inputId);
+  drop.addEventListener('dragover', ev => { ev.preventDefault(); drop.classList.add('ok'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('ok'));
+  drop.addEventListener('drop', ev => { ev.preventDefault(); drop.classList.remove('ok'); if (ev.dataTransfer.files[0]) onFile(ev.dataTransfer.files[0]); });
+  inp.addEventListener('change', ev => { if (ev.target.files[0]) onFile(ev.target.files[0]); });
+}
+
+setupDrop('strDrop','strFile', file => {
+  document.getElementById('strSub').textContent = 'Reading...';
+  const fr = new FileReader();
+  fr.onload = ev => {
+    S.strBuf = ev.target.result;
+    S.strLoaded = true;
+    document.getElementById('strIcon').textContent = '✅';
+    document.getElementById('strSub').textContent = `${file.name} · ${(file.size/1024/1024).toFixed(1)} MB`;
+    document.getElementById('strDrop').classList.add('ok');
+    checkReady();
+  };
+  fr.onerror = () => { document.getElementById('strSub').textContent = '⚠ Read failed'; document.getElementById('strDrop').classList.add('err'); };
+  fr.readAsArrayBuffer(file);
+});
+
+setupDrop('mapDrop','mapFile', file => {
+  document.getElementById('mapSub').textContent = 'Parsing...';
+  const fr = new FileReader();
+  fr.onload = ev => {
+    try {
+      const wb = XLSX.read(ev.target.result, { type:'array', dense:false });
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:'' });
+      if (!rows.length) throw new Error('Empty sheet');
+      S.mapData = rows;
+      S.mapLoaded = true;
+      document.getElementById('mapIcon').textContent = '✅';
+      document.getElementById('mapSub').textContent = `${rows.length} campaigns · ${file.name}`;
+      document.getElementById('mapDrop').classList.add('ok');
+      checkReady();
+    } catch(err) {
+      document.getElementById('mapIcon').textContent = '❌';
+      document.getElementById('mapSub').textContent = '⚠ ' + err.message;
+      document.getElementById('mapDrop').classList.add('err');
+    }
+  };
+  fr.onerror = () => { document.getElementById('mapSub').textContent = '⚠ Read failed'; };
+  fr.readAsArrayBuffer(file);
+});
+
+function checkReady() {
+  document.getElementById('btnAnalyze').disabled = !(S.strLoaded && S.mapLoaded);
+}
+
+/* ═══════════════════════════ ANALYZE ════════════════════════ */
+document.getElementById('btnAnalyze').addEventListener('click', async () => {
+  if (S.analyzing) return;
+  if (!S.strBuf || !S.mapData.length) return;
+  S.analyzing = true;
+  S.ready = false;
+
+  document.getElementById('btnTxt').innerHTML = '<span class="spin"></span> Analyzing...';
+  document.getElementById('btnAnalyze').disabled = true;
+  document.getElementById('progWrap').style.display = 'block';
+  setProgFill(0); setProgMsg('Starting...');
+  setTopMsg('');
+
+  startWorker();
+  const buf = S.strBuf.slice(0); // clone — keep original for re-analyze
+  worker.postMessage({ type:'PARSE_STR', buffer:buf, mapData:S.mapData }, [buf]);
+});
+
+/* ═══════════════════════════ METRICS ════════════════════════ */
+function renderMetrics() {
+  const s = S.stats;
+  document.getElementById('mTotal').textContent  = fmtN(s.total);
+  document.getElementById('mNeg').textContent    = fmtN(s.NEGATE);
+  document.getElementById('mIrr').textContent    = fmtN(s.IRR);
+  document.getElementById('mBleed').textContent  = fmtN(s.BLEED);
+  document.getElementById('mSpend').textContent  = '₹'+fmtK(s.totalSpend);
+  document.getElementById('mWasted').textContent = '₹'+fmtK(s.wastedSpend);
+  const pct = s.totalSpend > 0 ? ((s.wastedSpend/s.totalSpend)*100).toFixed(1) : 0;
+  document.getElementById('mWastedPct').textContent = pct+'% of total';
+}
+
+/* ═══════════════════════════ OVERVIEW ═══════════════════════ */
+let charts = {};
+function renderOverview() {
+  document.getElementById('ovEmpty').style.display = 'none';
+  const grid = document.getElementById('ovGrid');
+  grid.style.display = 'grid';
+  const s = S.stats;
+  const fk = ['OK','BLEED','IRR','NEGATE'];
+  const fl = ['OK','Bleeding','Irrelevant','Negate'];
+  const fc = ['#2ecc71','#f39c12','#e67e22','#e74c3c'];
+  const spendByFlag = {};
+  fk.forEach(k => spendByFlag[k] = 0);
+  // compute from campaigns (approximate)
+  S.campaigns.forEach(c => { fk.forEach(k => { /* not exact per flag */ }); });
+
+  grid.innerHTML = `
+    <div class="ov-card amber">
+      <h4>Spend efficiency</h4>
+      <div class="big">₹${fmtK(s.wastedSpend)}</div>
+      <p>Non-relevant spend across ${fmt(s.BLEED+s.IRR+s.NEGATE)} queries — ${s.totalSpend>0?((s.wastedSpend/s.totalSpend)*100).toFixed(1):0}% of total</p>
+      <div style="margin-top:10px">
+        <div class="stat-row"><span class="stat-l">Total spend</span><span class="stat-r">₹${fmtK(s.totalSpend)}</span></div>
+        <div class="stat-row"><span class="stat-l">Wasted spend</span><span class="stat-r" style="color:var(--neg)">₹${fmtK(s.wastedSpend)}</span></div>
+        <div class="stat-row"><span class="stat-l">Total impressions</span><span class="stat-r">${fmtK(s.totalImpr)}</span></div>
+        <div class="stat-row"><span class="stat-l">Total clicks</span><span class="stat-r">${fmtK(s.totalClicks)}</span></div>
+        <div class="stat-row"><span class="stat-l">Overall CTR</span><span class="stat-r">${s.totalImpr>0?((s.totalClicks/s.totalImpr)*100).toFixed(2):0}%</span></div>
+        <div class="stat-row"><span class="stat-l">Total conversions</span><span class="stat-r">${fmtK(s.totalConv)}</span></div>
+      </div>
+    </div>
+    <div class="ov-card red">
+      <h4>Flag distribution</h4>
+      <div class="chart-wrap"><canvas id="cPie"></canvas></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        ${fk.map((k,i)=>`<div class="stat-row"><span class="stat-l" style="color:${fc[i]}">${fl[i]}</span><span class="stat-r">${fmt(s[k])}</span></div>`).join('')}
+      </div>
+    </div>
+    <div class="ov-card blue">
+      <h4>Query volume by flag</h4>
+      <div class="chart-wrap"><canvas id="cBar"></canvas></div>
+    </div>
+    <div class="ov-card green" style="grid-column:1/-1">
+      <h4>Immediate actions</h4>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div>
+          <div class="stat-row"><span class="stat-l">🚨 Must negate</span><span class="stat-r" style="color:var(--neg)">${fmt(s.NEGATE)} queries</span></div>
+          <div class="stat-row"><span class="stat-l">⚠️ Irrelevant</span><span class="stat-r" style="color:var(--irr)">${fmt(s.IRR)} queries</span></div>
+          <div class="stat-row"><span class="stat-l">🔶 Bleeding</span><span class="stat-r" style="color:var(--bleed)">${fmt(s.BLEED)} queries</span></div>
+        </div>
+        <div><p style="font-size:11px;color:var(--muted);line-height:1.7">Switch high-spend broad match keywords to phrase match. Add the full negation list (Negation List tab → Export) to all affected campaigns. Review bleeding terms for bid reduction or exclusion.</p></div>
+        <div>
+          <div class="stat-row"><span class="stat-l">Campaigns analyzed</span><span class="stat-r">${fmt(S.campaigns.length)}</span></div>
+          <div class="stat-row"><span class="stat-l">Categories detected</span><span class="stat-r">${fmt(S.categories.length)}</span></div>
+          <div class="stat-row"><span class="stat-l">OK queries</span><span class="stat-r" style="color:var(--ok)">${fmt(s.OK)}</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  setTimeout(() => {
+    if (charts.pie) charts.pie.destroy();
+    if (charts.bar) charts.bar.destroy();
+    const co = { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}} };
+    charts.pie = new Chart(document.getElementById('cPie'), {
+      type:'doughnut',
+      data:{ labels:fl, datasets:[{ data:fk.map(k=>s[k]), backgroundColor:fc, borderWidth:0 }] },
+      options:co
+    });
+    charts.bar = new Chart(document.getElementById('cBar'), {
+      type:'bar',
+      data:{ labels:fl, datasets:[{ data:fk.map(k=>s[k]), backgroundColor:fc, borderRadius:4, borderWidth:0 }] },
+      options:{ ...co, scales:{ x:{ticks:{color:'#7c819a',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}}, y:{ticks:{color:'#7c819a',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}} } }
+    });
+  }, 50);
+}
+
+/* ═══════════════════════════ TERMS TABLE — lazy load ════════ */
+async function loadTermsPage(page) {
+  showLoader('terms', true);
+  try {
+    const { rows, total, pages } = await queryRows(S.filters, S.sortCol, S.sortDir, page, S.PAGE);
+    S.terms = { page, total, pages };
+    document.getElementById('termsEmpty').style.display = 'none';
+    const tw = document.getElementById('termsTableWrap');
+    tw.style.display = 'flex';
+    tw.style.flexDirection = 'column';
+
+    document.getElementById('rowInfo').textContent = `${fmt(total)} matching rows`;
+    renderTermsRows(rows);
+    renderTermsPag(page, total, pages);
+  } catch(err) { console.error(err); }
+  showLoader('terms', false);
+}
+
+function renderTermsRows(rows) {
+  document.getElementById('termsTbody').innerHTML = rows.map(r => `
+    <tr>
+      <td class="td-clip td-mono" title="${esc(r.sq)}" style="font-size:10px">${esc(r.sq)}</td>
+      <td class="td-clip-sm td-muted">${esc(r.kw)}</td>
+      <td class="td-muted" style="font-size:10px">${esc(r.matchType)}</td>
+      <td class="td-clip td-muted" style="font-size:10px" title="${esc(r.campaign)}">${esc(r.campaign.slice(0,38))}${r.campaign.length>38?'…':''}</td>
+      <td class="td-muted" style="font-size:10px">${esc(r.category)}</td>
+      <td class="td-muted" style="font-size:10px">${esc(r.franchise)}</td>
+      <td class="td-mono">₹${r.burnt.toFixed(2)}</td>
+      <td class="td-mono">${fmtK(r.impr)}</td>
+      <td class="td-mono">${r.clicks}</td>
+      <td class="td-mono">${r.roi}</td>
+      <td><span class="fp fp-${r.flag}">${flagLabel(r.flag)}</span></td>
+      <td class="td-muted td-clip" style="max-width:200px;font-size:10px" title="${esc(r.reason)}">${esc(r.reason.slice(0,60))}${r.reason.length>60?'…':''}</td>
+    </tr>`).join('') || '<tr><td colspan="12" style="text-align:center;padding:24px;color:var(--muted)">No rows match current filters</td></tr>';
+}
+
+function renderTermsPag(page, total, pages) {
+  const pag = document.getElementById('termsPag');
+  pag.style.display = total > 0 ? 'flex' : 'none';
+  const start = page * S.PAGE + 1, end = Math.min((page+1)*S.PAGE, total);
+  document.getElementById('termsPagInfo').textContent = `Showing ${fmt(start)}–${fmt(end)} of ${fmt(total)}`;
+  document.getElementById('termsPagNum').textContent  = `Page ${page+1} of ${pages}`;
+  document.getElementById('termsPrev').disabled = page === 0;
+  document.getElementById('termsNext').disabled = page >= pages - 1;
+}
+
+document.getElementById('termsPrev').addEventListener('click', () => { if(S.terms.page>0) loadTermsPage(S.terms.page-1); });
+document.getElementById('termsNext').addEventListener('click', () => { if(S.terms.page<S.terms.pages-1) loadTermsPage(S.terms.page+1); });
+
+/* ═══════════════════════════ NEGATION LIST — lazy load ══════ */
+async function loadNegPage(page) {
+  showLoader('neg', true);
+  try {
+    const { rows, total, pages } = await queryNegs(page, S.PAGE);
+    S.neg = { page, total, pages };
+    document.getElementById('negEmpty').style.display = total > 0 ? 'none' : 'flex';
+    document.getElementById('negTableWrap').style.display = total > 0 ? 'block' : 'none';
+    document.getElementById('negInfo').textContent = `${fmt(total)} queries to negate`;
+    renderNegRows(rows);
+    renderNegPag(page, total, pages);
+  } catch(err) { console.error(err); }
+  showLoader('neg', false);
+}
+
+function renderNegRows(rows) {
+  document.getElementById('negTbody').innerHTML = rows.map(r => `
+    <tr>
+      <td class="td-mono" style="font-size:10px;color:var(--neg)">${esc(r.sq)}</td>
+      <td class="td-muted">${esc(r.kw)}</td>
+      <td class="td-muted" style="font-size:10px">${esc(r.matchType)}</td>
+      <td class="td-clip td-muted" style="font-size:10px" title="${esc(r.campaign)}">${esc(r.campaign.slice(0,38))}${r.campaign.length>38?'…':''}</td>
+      <td class="td-muted" style="font-size:10px">${esc(r.category)}</td>
+      <td class="td-mono">₹${r.burnt.toFixed(2)}</td>
+      <td class="td-mono">${fmtK(r.impr)}</td>
+      <td class="td-muted" style="font-size:10px;color:var(--neg)">${esc(r.reason)}</td>
+    </tr>`).join('');
+}
+
+function renderNegPag(page, total, pages) {
+  const pag = document.getElementById('negPag');
+  pag.style.display = total > 0 ? 'flex' : 'none';
+  const start = page * S.PAGE + 1, end = Math.min((page+1)*S.PAGE, total);
+  document.getElementById('negPagInfo').textContent = `Showing ${fmt(start)}–${fmt(end)} of ${fmt(total)}`;
+  document.getElementById('negPagNum').textContent  = `Page ${page+1} of ${pages}`;
+  document.getElementById('negPrev').disabled = page === 0;
+  document.getElementById('negNext').disabled = page >= pages - 1;
+}
+
+document.getElementById('negPrev').addEventListener('click', () => { if(S.neg.page>0) loadNegPage(S.neg.page-1); });
+document.getElementById('negNext').addEventListener('click', () => { if(S.neg.page<S.neg.pages-1) loadNegPage(S.neg.page+1); });
+
+/* ═══════════════════════════ CAMPAIGNS ══════════════════════ */
+function renderCampaigns() {
+  const camps = S.campaigns;
+  document.getElementById('campEmpty').style.display = camps.length ? 'none' : 'flex';
+  const tw = document.getElementById('campTableWrap');
+  tw.style.display = camps.length ? 'table' : 'none';
+  document.getElementById('campInfo').textContent = `${fmt(camps.length)} campaigns`;
+  document.getElementById('campTbody').innerHTML = camps.map((c,i) => {
+    const tot = c.OK+c.BLEED+c.IRR+c.NEGATE;
+    const wp  = tot > 0 ? (((c.BLEED+c.IRR+c.NEGATE)/tot)*100).toFixed(0) : 0;
+    const wc  = wp > 50 ? 'var(--neg)' : wp > 25 ? 'var(--bleed)' : 'var(--ok)';
+    return `<tr>
+      <td class="td-muted td-mono">${i+1}</td>
+      <td class="td-clip" style="max-width:220px;font-size:11px" title="${esc(c.name)}">${esc(c.name.slice(0,44))}${c.name.length>44?'…':''}</td>
+      <td class="td-muted" style="font-size:10px">${esc(c.category)}</td>
+      <td class="td-mono">₹${fmtK(c.spend)}</td>
+      <td class="td-mono">${fmtK(c.impr)}</td>
+      <td class="td-mono">${fmtK(c.clicks)}</td>
+      <td class="td-mono" style="color:var(--ok)">${c.OK}</td>
+      <td class="td-mono" style="color:var(--bleed)">${c.BLEED}</td>
+      <td class="td-mono" style="color:var(--irr)">${c.IRR}</td>
+      <td class="td-mono" style="color:var(--neg)">${c.NEGATE}</td>
+      <td class="td-mono" style="color:${wc};font-weight:600">${wp}%</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════ FILTERS ════════════════════════ */
+function buildFilterOptions() {
+  const fc = document.getElementById('fCampaign');
+  fc.innerHTML = '<option value="">All campaigns</option>' + S.campNames.map(c=>`<option value="${esc(c)}">${c.length>50?c.slice(0,50)+'…':c}</option>`).join('');
+  const fcat = document.getElementById('fCategory');
+  fcat.innerHTML = '<option value="">All categories</option>' + S.categories.map(c=>`<option value="${esc(c)}">${c}</option>`).join('');
+}
+
+document.getElementById('btnApply').addEventListener('click', async () => {
+  if (!S.ready) return;
+  S.filters.campaign = document.getElementById('fCampaign').value;
+  S.filters.category = document.getElementById('fCategory').value;
+  S.filters.match    = document.getElementById('fMatch').value;
+  S.filters.minSpend = parseFloat(document.getElementById('fSpend').value)||0;
+  S.filters.flags    = new Set([...document.querySelectorAll('.fc:checked')].map(c=>c.value));
+  S.filters.query    = document.getElementById('tblSearch').value;
+  await loadTermsPage(0);
+});
+
+let searchTimer = null;
+document.getElementById('tblSearch').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    if (!S.ready) return;
+    S.filters.query = e.target.value;
+    await loadTermsPage(0);
+  }, 400);
+});
+
+/* ═══════════════════════════ TABS ═══════════════════════════ */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('sec-'+tab.dataset.tab).classList.add('active');
+  });
+});
+
+/* ═══════════════════════════ EXPORT ════════════════════════ */
+document.getElementById('btnExportAll').addEventListener('click', async () => {
+  setTopMsg('Preparing export...');
+  const rows = await exportAllFlagged();
+  doExport(rows, 'str_flagged_'+today()+'.xlsx');
+  setTopMsg('Exported '+fmt(rows.length)+' rows');
+});
+
+document.getElementById('btnExportView').addEventListener('click', async () => {
+  const { rows } = await queryRows(S.filters, S.sortCol, S.sortDir, 0, 999999);
+  doExport(rows, 'str_filtered_'+today()+'.xlsx');
+});
+
+document.getElementById('btnExportNeg').addEventListener('click', async () => {
+  const { rows } = await queryNegs(0, 999999);
+  doExport(rows, 'negation_list_'+today()+'.xlsx');
+});
+
+function doExport(rows, filename) {
+  const data = rows.map(r => ({
+    'Date':r.date,'Search Query':r.sq,'Keyword':r.kw,'Match Type':r.matchType,
+    'Campaign':r.campaign,'Category':r.category,'Franchise':r.franchise,'Brand':r.brand,
+    'Spend (₹)':r.burnt,'Impressions':r.impr,'Clicks':r.clicks,'ROI':r.roi,
+    'Flag':r.flag,'Reason':r.reason
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Data');
+  XLSX.writeFile(wb, filename);
+}
+
+/* ═══════════════════════════ UTILS ══════════════════════════ */
+function fmt(n) { return Number(n).toLocaleString('en-IN'); }
+function fmtK(n) {
+  n = +n;
+  if (n >= 1e7) return (n/1e7).toFixed(1)+'Cr';
+  if (n >= 1e5) return (n/1e5).toFixed(1)+'L';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toFixed ? n.toFixed(0) : String(n);
+}
+function fmtN(n) { return Number(n).toLocaleString('en-IN'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function flagLabel(f) { return {OK:'OK',BLEED:'Bleeding',IRR:'Irrelevant',NEGATE:'Negate ❌'}[f]||f; }
+function today() { return new Date().toISOString().slice(0,10); }
+function setProgFill(pct) { document.getElementById('progFill').style.width = pct+'%'; }
+function setProgMsg(msg)  { document.getElementById('progMsg').textContent = msg; }
+function setTopMsg(msg, err) { const el=document.getElementById('topMsg'); el.textContent=msg; el.style.color=err?'var(--neg)':'var(--muted)'; }
+function resetBtn() { document.getElementById('btnTxt').textContent='⚡ Re-analyze'; document.getElementById('btnAnalyze').disabled=false; }
+function showLoader(sec, show) { document.getElementById(sec+'Loader').style.display = show ? 'flex' : 'none'; }
+
+// Init IDB on load (so it's ready for queries if data already exists from previous session)
+openIDB().catch(()=>{});
+</script>
+</body>
+</html>
